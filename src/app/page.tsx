@@ -1,17 +1,18 @@
 import { ConstructionIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 
 export default function Home() {
     return (
         <main className="flex min-h-screen flex-col bg-white text-black">
             <header className="flex items-center justify-between px-6 py-6 md:px-12 md:py-8">
-                <a
+                <Link
                     href="/"
                     aria-label="Footr — página inicial"
                     className="font-archivo-black text-3xl italic tracking-[-0.07em] md:text-4xl"
                 >
                     Footr
-                </a>
+                </Link>
 
                 <span className="font-sans text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">
                     Em construção
