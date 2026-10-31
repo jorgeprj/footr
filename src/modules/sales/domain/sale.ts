@@ -1,3 +1,4 @@
+
 export type PaymentMethod =
     | "installment"
     | "credit"
@@ -6,6 +7,12 @@ export type PaymentMethod =
     | "cash";
 
 export type DiscountType = "fixed" | "percentage";
+
+export type SaleStatus =
+    | "pending"
+    | "completed"
+    | "cancelled"
+    | "refunded";
 
 export interface CompleteSaleInput {
     productIds: string[];
@@ -17,6 +24,44 @@ export interface CompleteSaleInput {
 
 export interface SaleReceipt {
     saleId: string;
+}
+
+export interface SaleItemPreview {
+    productId: string;
+    teamName: string;
+    season: string;
+    type: string;
+    version: string;
+    size: string;
+}
+
+export interface Sale {
+    id: string;
+    saleNumber: number;
+    customerName: string | null;
+    paymentMethod: PaymentMethod;
+    status: SaleStatus;
+    subtotal: number;
+    discountAmount: number;
+    totalAmount: number;
+    soldAt: string;
+    createdAt: string;
+    itemCount: number;
+    itemsPreview: SaleItemPreview[];
+}
+
+export interface SaleItem extends SaleItemPreview {
+    id: string;
+    productCode: string;
+    productDescription: string;
+    unitCost: number;
+    unitPrice: number;
+    discountAmount: number;
+    lineTotal: number;
+}
+
+export interface SaleDetails extends Sale {
+    items: SaleItem[];
 }
 
 export function calculateDiscount(
