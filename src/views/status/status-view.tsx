@@ -5,7 +5,7 @@ import type {
 
 import Link from "next/link";
 
-interface StatusPageProps {
+interface StatusViewProps {
     health: SystemHealth;
 }
 
@@ -73,7 +73,7 @@ function ServiceRow({
     );
 }
 
-export function StatusPage({ health }: StatusPageProps) {
+export function StatusView({ health }: StatusViewProps) {
     const allOperational =
         health.database.status === "operational" &&
         health.authentication.status === "operational";

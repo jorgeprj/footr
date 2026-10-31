@@ -46,6 +46,7 @@ create table public.products (
     footr_code text not null unique,
     team_name text not null check (char_length(trim(team_name)) > 0),
     season text not null,
+    text NOT NULL DEFAULT 'Home' check (char_length(trim(type)) > 0),
     version text not null,
     size text not null,
 

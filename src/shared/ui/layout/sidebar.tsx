@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-    Home01Icon,
+    Home04Icon,
     PackageIcon,
     ShoppingBag03Icon,
     ReceiptTextIcon,
@@ -15,7 +15,7 @@ import {
 } from "@hugeicons/core-free-icons";
 
 const navigation = [
-    { label: "Visão geral", href: "/dashboard", icon: Home01Icon },
+    { label: "Visão geral", href: "/dashboard", icon: Home04Icon },
     { label: "Produtos", href: "/products", icon: PackageIcon },
     { label: "PDV", href: "/pos", icon: ShoppingBag03Icon },
     { label: "Vendas", href: "/sales", icon: ReceiptTextIcon },

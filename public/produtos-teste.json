@@ -1,0 +1,44 @@
+[
+  {
+    "team_name": "Manchester United",
+    "season": "2007/08",
+    "type": "Home",
+    "version": "Torcedor",
+    "size": "M",
+    "cost_price": 120.00,
+    "sale_price": 249.90
+  },
+  {
+    "team_name": "Real Madrid",
+    "season": "2023/24",
+    "version": "Jogador",
+    "size": "G",
+    "cost_price": 180.00,
+    "sale_price": 349.90
+  },
+  {
+    "season": "2010/11",
+    "type": "Home",
+    "version": "Torcedor",
+    "size": "P",
+    "cost_price": 90.00,
+    "sale_price": 199.90
+  },
+  {
+    "team_name": "Arsenal",
+    "season": "2005/06",
+    "type": "Third",
+    "version": "Jogador",
+    "size": "GG",
+    "sale_price": 299.90
+  },
+  {
+    "team_name": "Brasil",
+    "season": "2022",
+    "type": "Home",
+    "version": "Torcedor",
+    "size": "M",
+    "cost_price": 100.00,
+    "sale_price": 219.90
+  }
+]

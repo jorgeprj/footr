@@ -1,4 +1,4 @@
-import type { StoreGateway } from "../../ports/store-gateway";
+import type { StoreGateway } from "../ports/store-gateway";
 
 export async function createInitialStore(
     storeGateway: StoreGateway,

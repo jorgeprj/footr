@@ -1,6 +1,6 @@
 "use server";
 
-import { createInitialStore } from "@/modules/stores/application/use-cases/create-initial-store";
+import { createInitialStore } from "@/modules/stores/application/create-initial-store";
 import { createSupabaseStoreGateway } from "@/modules/stores/adapters/supabase/supabase-store-gateway";
 
 export interface StoreActionState {

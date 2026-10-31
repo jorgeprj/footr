@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { createSupabaseSystemStatusGateway } from "@/modules/system/adapters/supabase/supabase-status-gateway";
 import { getSystemStatus } from "@/modules/system/application/get-system-status";
-import { StatusPage } from "@/views/status/status-page";
+import { StatusView } from "@/views/status/status-view";
 
 function StatusSkeleton() {
     return (
@@ -37,7 +37,7 @@ async function StatusContent() {
     const gateway = createSupabaseSystemStatusGateway();
     const health = await getSystemStatus(gateway);
 
-    return <StatusPage health={health} />;
+    return <StatusView health={health} />;
 }
 
 export default function SystemStatusRoute() {
