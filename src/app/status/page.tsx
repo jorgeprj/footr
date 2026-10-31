@@ -1,9 +1,10 @@
-
 import { Suspense } from "react";
 
 import { createSupabaseSystemStatusGateway } from "@/modules/system/adapters/supabase/supabase-status-gateway";
 import { getSystemStatus } from "@/modules/system/application/get-system-status";
 import { StatusView } from "@/views/status/status-view";
+
+export const dynamic = "force-dynamic";
 
 function StatusSkeleton() {
     return (
