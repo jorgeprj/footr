@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 
 import type { Product } from "@/modules/products";
 import { UpdateProductForm } from "./update-product-form";
+import { HugeiconsIcon } from "@hugeicons/react";
+import Edit02Icon from "@hugeicons/core-free-icons/Edit02Icon";
 
 interface UpdateProductDialogProps {
     product: Product;
@@ -26,9 +28,15 @@ export function UpdateProductDialog({
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                className="text-sm text-zinc-600 transition-colors hover:text-zinc-950"
+                title="Editar produto"
+                aria-label="Editar produto"
+                className="flex size-9 items-center justify-center text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950 rounded-full"
             >
-                Editar
+                <HugeiconsIcon
+                    icon={Edit02Icon}
+                    size={18}
+                    strokeWidth={1.8}
+                />
             </button>
 
             {isOpen && (

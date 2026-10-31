@@ -2,6 +2,10 @@ import type { Product } from "@/modules/products/domain/product";
 
 import { UpdateProductDialog } from "@/features/products/ui/update-product-dialog";
 import { ExportProductsButton } from "@/features/products/ui/export-products-button";
+import { useState } from "react";
+import { ProductLabelDialog } from "@/features/products/ui/product-label-dialog";
+import { HugeiconsIcon } from "@hugeicons/react";
+import PrinterIcon from "@hugeicons/core-free-icons/PrinterIcon";
 
 interface ProductTableProps {
     products: Product[];
@@ -56,6 +60,7 @@ function ShirtPlaceholder() {
 }
 
 export function ProductTable({ products }: ProductTableProps) {
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     return (
         <div className="space-y-4">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -153,7 +158,21 @@ export function ProductTable({ products }: ProductTableProps) {
                                     </td>
 
                                     <td className="px-4 py-3">
-                                        <div className="flex items-center justify-end">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedProduct(product)}
+                                                title="Gerar etiqueta"
+                                                aria-label="Gerar etiqueta"
+                                                className="flex size-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
+                                            >
+                                                <HugeiconsIcon
+                                                    icon={PrinterIcon}
+                                                    size={18}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </button>
+
                                             <UpdateProductDialog product={product} />
                                         </div>
                                     </td>
@@ -162,6 +181,12 @@ export function ProductTable({ products }: ProductTableProps) {
                         </tbody>
                     </table>
                 </div>
+            )}
+            {selectedProduct && (
+                <ProductLabelDialog
+                    product={selectedProduct}
+                    onClose={() => setSelectedProduct(null)}
+                />
             )}
         </div>
     );
