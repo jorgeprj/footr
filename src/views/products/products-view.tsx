@@ -19,6 +19,10 @@ export function ProductsView({ products }: ProductsViewProps) {
     const [importPreview, setImportPreview] =
         useState<ProductImportPreview | null>(null);
 
+    const availableProducts = products.filter(
+        (product) => product.status === "available",
+    );
+
     return (
         <main className="space-y-10">
             <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
@@ -52,11 +56,15 @@ export function ProductsView({ products }: ProductsViewProps) {
             <section>
                 <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                     <h2 className="text-sm font-semibold text-zinc-950">
-                        Todos os produtos
+                        Produtos disponíveis
                     </h2>
+
+                    <span className="text-xs text-zinc-500">
+                        {availableProducts.length} produtos
+                    </span>
                 </div>
 
-                <ProductTable products={products} />
+                <ProductTable products={availableProducts} />
             </section>
 
             {importPreview && (

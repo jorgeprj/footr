@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -9,7 +10,6 @@ import {
     ScanLine,
     ShoppingBag03Icon,
     PlusSignIcon,
-    MinusSignIcon,
     Delete02Icon,
     Cancel01Icon,
     ArrowRight01Icon,
@@ -17,6 +17,8 @@ import {
 
 import type { Product } from "@/modules/products/domain/product";
 import { BrowserMultiFormatReader } from "@zxing/browser";
+import { completeSaleAction } from "@/features/checkout/complete-sale";
+import { CheckoutPanel } from "@/views/pos/checkout-panel";
 
 interface PosViewProps {
     products: Product[];
@@ -28,22 +30,37 @@ interface CartItem {
 }
 
 export function PosView({ products }: PosViewProps) {
+    const router = useRouter();
+
+    const [availableProducts, setAvailableProducts] = useState<Product[]>(
+        () => products.filter((product) => product.status === "available"),
+    );
+
     const [search, setSearch] = useState("");
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [feedback, setFeedback] = useState<string | null>(null);
+
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [scannerError, setScannerError] = useState<string | null>(null);
 
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
     const videoRef = useRef<HTMLVideoElement>(null);
-    const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+
+    // Sincroniza os produtos quando o servidor atualiza as props.
+    useEffect(() => {
+        setAvailableProducts(
+            products.filter((product) => product.status === "available"),
+        );
+    }, [products]);
 
     const filteredProducts = useMemo(() => {
         const searchValue = search.trim().toLowerCase();
 
         const matchingProducts = !searchValue
-            ? products
-            : products.filter((product) =>
+            ? availableProducts
+            : availableProducts.filter((product) =>
                 [
                     product.footrCode,
                     product.teamName,
@@ -57,8 +74,7 @@ export function PosView({ products }: PosViewProps) {
             );
 
         return matchingProducts.slice(0, 5);
-    }, [products, search]);
-
+    }, [availableProducts, search]);
 
     const cartCount = cart.length;
 
@@ -74,7 +90,11 @@ export function PosView({ products }: PosViewProps) {
         }).format(value);
 
     function addToCart(product: Product) {
-        if (product.status !== "available") return;
+        const isAvailable = availableProducts.some(
+            (item) => item.id === product.id,
+        );
+
+        if (product.status !== "available" || !isAvailable) return;
 
         const alreadyAdded = cart.some(
             (item) => item.product.id === product.id,
@@ -98,7 +118,7 @@ export function PosView({ products }: PosViewProps) {
 
         if (!searchValue) return;
 
-        const exactMatch = products.find(
+        const exactMatch = availableProducts.find(
             (product) =>
                 product.footrCode.toLowerCase() ===
                 searchValue.toLowerCase(),
@@ -111,7 +131,9 @@ export function PosView({ products }: PosViewProps) {
         }
 
         if (filteredProducts.length === 0) {
-            setFeedback("Nenhum produto encontrado. Confira o código ou tente outra busca.");
+            setFeedback(
+                "Nenhum produto encontrado. Confira o código ou tente outra busca.",
+            );
             return;
         }
 
@@ -121,7 +143,9 @@ export function PosView({ products }: PosViewProps) {
             return;
         }
 
-        setFeedback("Mais de um produto encontrado. Selecione o produto desejado.");
+        setFeedback(
+            "Mais de um produto encontrado. Selecione o produto desejado.",
+        );
     }
 
     function removeFromCart(productId: string) {
@@ -130,30 +154,96 @@ export function PosView({ products }: PosViewProps) {
         );
     }
 
+    function openCheckout() {
+        if (cart.length === 0) return;
+
+        setIsCartOpen(false);
+        setIsCheckoutOpen(true);
+    }
+
+    async function handleCompleteSale(input: {
+        productIds: string[];
+        paymentMethod:
+        | "installment"
+        | "credit"
+        | "debit"
+        | "pix"
+        | "cash";
+        customerName?: string;
+        discountType: "fixed" | "percentage";
+        discountValue: number;
+    }) {
+        try {
+            const result = await completeSaleAction({
+                productIds: input.productIds,
+                paymentMethod: input.paymentMethod,
+                customerName: input.customerName,
+                discountType: input.discountType,
+                discountValue: input.discountValue,
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error,
+                };
+            }
+
+            // Remove os produtos vendidos imediatamente do PDV.
+            setAvailableProducts((current) =>
+                current.filter(
+                    (product) => !input.productIds.includes(product.id),
+                ),
+            );
+
+            setCart([]);
+            setSearch("");
+            setIsCartOpen(false);
+
+            setFeedback(
+                `Venda #${result.saleId.slice(0, 8)} finalizada com sucesso.`,
+            );
+
+            router.refresh();
+
+            return {
+                success: true,
+            };
+        } catch {
+            return {
+                success: false,
+                error: "Não foi possível finalizar a venda. Tente novamente.",
+            };
+        }
+    }
+
+    function handleCheckoutBack() {
+        setIsCheckoutOpen(false);
+    }
+
     useEffect(() => {
         if (!isScannerOpen || !videoRef.current) return;
 
         const reader = new BrowserMultiFormatReader();
-        readerRef.current = reader;
-
         let active = true;
+        let controls: { stop: () => void } | undefined;
 
         async function startScanner() {
             try {
-                await reader.decodeFromVideoDevice(
+                controls = await reader.decodeFromVideoDevice(
                     undefined,
                     videoRef.current!,
-                    (result, error, controls) => {
+                    (result) => {
                         if (!active || !result) return;
 
                         const scannedCode = result.getText().trim();
 
                         if (!scannedCode) return;
 
-                        controls.stop();
+                        controls?.stop();
                         setIsScannerOpen(false);
 
-                        const product = products.find(
+                        const product = availableProducts.find(
                             (item) =>
                                 item.footrCode.toLowerCase() ===
                                 scannedCode.toLowerCase(),
@@ -182,9 +272,19 @@ export function PosView({ products }: PosViewProps) {
 
         return () => {
             active = false;
-            readerRef.current = null;
+            controls?.stop();
         };
-    }, [isScannerOpen]);
+    }, [isScannerOpen, availableProducts]);
+
+    if (isCheckoutOpen) {
+        return (
+            <CheckoutPanel
+                products={cart.map((item) => item.product)}
+                onBack={handleCheckoutBack}
+                onComplete={handleCompleteSale}
+            />
+        );
+    }
 
     return (
         <main className="min-h-screen pb-28 lg:pb-8">
@@ -291,7 +391,7 @@ export function PosView({ products }: PosViewProps) {
                         </h2>
 
                         <span className="text-xs text-zinc-500">
-                            {products.length} produtos
+                            {availableProducts.length} produtos
                         </span>
                     </div>
 
@@ -389,6 +489,7 @@ export function PosView({ products }: PosViewProps) {
                             cartTotal={cartTotal}
                             formattedPrice={formattedPrice}
                             onRemove={removeFromCart}
+                            onCheckout={openCheckout}
                         />
                     </div>
                 </aside>
@@ -457,6 +558,7 @@ export function PosView({ products }: PosViewProps) {
                             cartTotal={cartTotal}
                             formattedPrice={formattedPrice}
                             onRemove={removeFromCart}
+                            onCheckout={openCheckout}
                         />
                     </div>
                 </div>
@@ -514,6 +616,7 @@ interface CartContentProps {
     cartTotal: number;
     formattedPrice: (value: number) => string;
     onRemove: (productId: string) => void;
+    onCheckout: () => void;
 }
 
 function CartContent({
@@ -521,6 +624,7 @@ function CartContent({
     cartTotal,
     formattedPrice,
     onRemove,
+    onCheckout,
 }: CartContentProps) {
     return (
         <div>
@@ -602,6 +706,7 @@ function CartContent({
 
                 <button
                     type="button"
+                    onClick={onCheckout}
                     disabled={cart.length === 0}
                     className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-zinc-950 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
                 >
