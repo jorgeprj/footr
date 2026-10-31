@@ -24,7 +24,7 @@ const navigation = [
 
 const secondaryNavigation = [
     { label: "Configurações", href: "/settings", icon: Settings02Icon },
-    { label: "Ajuda", href: "/help", icon: HelpCircleIcon },
+    { label: "Ajuda", href: "/blog/como-importar-produtos-automaticamente", icon: HelpCircleIcon },
 ];
 
 interface SidebarProps {

@@ -62,15 +62,16 @@ function PosSkeleton() {
 async function PosContent() {
     await connection();
 
+    let availableProducts;
+
     try {
         const { listProducts, storeId } = await createProductUseCases();
 
         const products = await listProducts.execute(storeId);
 
-        const availableProducts = products
-            .filter((product) => product.status === "available")
-
-        return <PosView products={availableProducts} />;
+        availableProducts = products.filter(
+            (product) => product.status === "available",
+        );
     } catch {
         return (
             <main className="py-12">
@@ -80,6 +81,8 @@ async function PosContent() {
             </main>
         );
     }
+
+    return <PosView products={availableProducts} />;
 }
 
 export default function PosPage() {

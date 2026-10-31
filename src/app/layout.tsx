@@ -20,7 +20,7 @@ const archivoBlack = Archivo_Black({
 });
 
 export const metadata: Metadata = {
-    title: "Footr — Football Shirt Management",
+    title: "Footr",
     description:
         "Uma nova forma de gerenciar, descobrir e valorizar camisas de futebol.",
 };

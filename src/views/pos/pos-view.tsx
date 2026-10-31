@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -32,8 +32,16 @@ interface CartItem {
 export function PosView({ products }: PosViewProps) {
     const router = useRouter();
 
-    const [availableProducts, setAvailableProducts] = useState<Product[]>(
-        () => products.filter((product) => product.status === "available"),
+    const [removedProductIds, setRemovedProductIds] = useState<string[]>([]);
+
+    const availableProducts = useMemo(
+        () =>
+            products.filter(
+                (product) =>
+                    product.status === "available" &&
+                    !removedProductIds.includes(product.id),
+            ),
+        [products, removedProductIds],
     );
 
     const [search, setSearch] = useState("");
@@ -47,13 +55,6 @@ export function PosView({ products }: PosViewProps) {
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
-
-    // Sincroniza os produtos quando o servidor atualiza as props.
-    useEffect(() => {
-        setAvailableProducts(
-            products.filter((product) => product.status === "available"),
-        );
-    }, [products]);
 
     const filteredProducts = useMemo(() => {
         const searchValue = search.trim().toLowerCase();
@@ -89,29 +90,32 @@ export function PosView({ products }: PosViewProps) {
             currency: "BRL",
         }).format(value);
 
-    function addToCart(product: Product) {
-        const isAvailable = availableProducts.some(
-            (item) => item.id === product.id,
-        );
+    const addToCart = useCallback(
+        (product: Product) => {
+            const isAvailable = availableProducts.some(
+                (item) => item.id === product.id,
+            );
 
-        if (product.status !== "available" || !isAvailable) return;
+            if (product.status !== "available" || !isAvailable) return;
 
-        const alreadyAdded = cart.some(
-            (item) => item.product.id === product.id,
-        );
+            const alreadyAdded = cart.some(
+                (item) => item.product.id === product.id,
+            );
 
-        if (alreadyAdded) {
-            setFeedback("Esta camisa já está no carrinho.");
-            return;
-        }
+            if (alreadyAdded) {
+                setFeedback("Esta camisa já está no carrinho.");
+                return;
+            }
 
-        setCart((current) => [
-            ...current,
-            { product, quantity: 1 },
-        ]);
+            setCart((current) => [
+                ...current,
+                { product, quantity: 1 },
+            ]);
 
-        setFeedback(`${product.teamName} adicionada ao carrinho.`);
-    }
+            setFeedback(`${product.teamName} adicionada ao carrinho.`);
+        },
+        [availableProducts, cart],
+    );
 
     function handleSearchSubmit() {
         const searchValue = search.trim();
@@ -189,12 +193,9 @@ export function PosView({ products }: PosViewProps) {
                 };
             }
 
-            // Remove os produtos vendidos imediatamente do PDV.
-            setAvailableProducts((current) =>
-                current.filter(
-                    (product) => !input.productIds.includes(product.id),
-                ),
-            );
+            setRemovedProductIds((current) => [
+                ...new Set([...current, ...input.productIds]),
+            ]);
 
             setCart([]);
             setSearch("");
@@ -274,7 +275,7 @@ export function PosView({ products }: PosViewProps) {
             active = false;
             controls?.stop();
         };
-    }, [isScannerOpen, availableProducts]);
+    }, [isScannerOpen, availableProducts, addToCart]);
 
     if (isCheckoutOpen) {
         return (

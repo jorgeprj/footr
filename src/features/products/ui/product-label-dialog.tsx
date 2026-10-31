@@ -1,7 +1,12 @@
-
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+    useSyncExternalStore,
+} from "react";
+
 import { createPortal } from "react-dom";
 
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -15,6 +20,7 @@ import {
 import bwipjs from "bwip-js";
 
 import type { Product } from "@/modules/products/domain/product";
+import Image from "next/image";
 
 type LabelFormat = "qrcode" | "code128";
 
@@ -23,10 +29,19 @@ interface ProductLabelDialogProps {
     onClose: () => void;
 }
 
-export function ProductLabelDialog({
-    product,
-    onClose,
-}: ProductLabelDialogProps) {
+function subscribeToMount() {
+    return () => { };
+}
+
+function getClientSnapshot() {
+    return true;
+}
+
+function getServerSnapshot() {
+    return false;
+}
+
+export function ProductLabelDialog({ product, onClose }: ProductLabelDialogProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const [format, setFormat] = useState<LabelFormat>("qrcode");
@@ -35,16 +50,17 @@ export function ProductLabelDialog({
     const [generationError, setGenerationError] = useState<string | null>(
         null,
     );
-    const [isMounted, setIsMounted] = useState(false);
+
+    const isMounted = useSyncExternalStore(
+        subscribeToMount,
+        getClientSnapshot,
+        getServerSnapshot,
+    );
 
     const formattedPrice = new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL",
     }).format(product.salePrice);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
 
     useEffect(() => {
         if (!isMounted) return;
@@ -252,10 +268,12 @@ export function ProductLabelDialog({
                                     </div>
 
                                     <div className="my-4 flex min-h-24 w-full items-center justify-center">
-                                        <img
+                                        <Image
                                             src={codeImage}
                                             alt={`Código ${product.footrCode}`}
                                             className="max-h-24 max-w-full object-contain"
+                                            height={96}
+                                            width={96}
                                         />
                                     </div>
 
@@ -331,9 +349,11 @@ export function ProductLabelDialog({
                         </div>
 
                         <div className="my-2 flex flex-1 items-center justify-center">
-                            <img
+                            <Image
                                 src={codeImage}
                                 alt=""
+                                height={64}
+                                width={128}
                                 className="max-h-16 max-w-full object-contain"
                             />
                         </div>
